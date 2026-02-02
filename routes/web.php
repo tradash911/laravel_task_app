@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
@@ -83,23 +84,24 @@ Route::get('/greet/{name}',function($name){
         return redirect()->route('task.index');
     });
 
-    Route::get('/tasks',function() use($tasks) {
-    return view('index',['tasks'=> $tasks]);
+    Route::get('/tasks',function()  {
+
+    return view('index',['tasks'=> App\Models\Task::latest()->where('completed',true)->get()]);
+
     } )->name('task.index');
 
-
+    Route::view('/tasks/create','create')->name('tasks.create');
     
-    Route::get('tasks/{id}',function($id) use($tasks){
-        $task = collect($tasks)->firstWhere('id',$id);
-        if (!$task) {
-            abort(Response::HTTP_NOT_FOUND);
-        
-        }
+    Route::get('tasks/{id}',function($id) {
+       
+      return view('task',['task'=>App\Models\Task::findOrFail($id)]);
 
-        return view('task',['task'=>$task]);
-        })->name('task.show');
+      })->name('task.show');
 
-   
+    Route::post('/tasks',function(Request $request){
+      dd($request);
+    })->name('tasks.store');
+
     Route::fallback(function(){
             return 'Page not found';
         });
